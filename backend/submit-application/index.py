@@ -1,8 +1,30 @@
 import json
 import os
+import urllib.request
+
+def send_telegram(name: str, phone: str, city: str):
+    token = os.environ['TELEGRAM_BOT_TOKEN']
+    chat_id = os.environ['TELEGRAM_CHAT_ID']
+    text = (
+        f"📋 *Новая заявка соискателя*\n\n"
+        f"👤 Имя: {name}\n"
+        f"📞 Телефон: {phone}\n"
+        f"📍 Город: {city}"
+    )
+    data = json.dumps({
+        'chat_id': chat_id,
+        'text': text,
+        'parse_mode': 'Markdown'
+    }).encode('utf-8')
+    req = urllib.request.Request(
+        f'https://api.telegram.org/bot{token}/sendMessage',
+        data=data,
+        headers={'Content-Type': 'application/json'}
+    )
+    urllib.request.urlopen(req, timeout=5)
 
 def handler(event: dict, context) -> dict:
-    """Сохраняет заявку соискателя (имя, телефон, город) в базу данных."""
+    """Сохраняет заявку соискателя и отправляет уведомление в Telegram."""
 
     if event.get('httpMethod') == 'OPTIONS':
         return {
@@ -46,6 +68,8 @@ def handler(event: dict, context) -> dict:
     conn.commit()
     cur.close()
     conn.close()
+
+    send_telegram(name, phone, city)
 
     return {
         'statusCode': 200,

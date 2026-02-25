@@ -53,12 +53,31 @@ const benefits = [
 ];
 
 export default function Index() {
-  const [form, setForm] = useState({ name: "", phone: "", vacancy: "", comment: "" });
+  const [form, setForm] = useState({ name: "", phone: "", city: "" });
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setSubmitted(true);
+    setLoading(true);
+    setError("");
+    try {
+      const res = await fetch("https://functions.poehali.dev/018ea074-7d45-4e3d-8459-9057ee958f65", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(form),
+      });
+      if (res.ok) {
+        setSubmitted(true);
+      } else {
+        setError("Ошибка отправки. Попробуйте ещё раз.");
+      }
+    } catch {
+      setError("Ошибка соединения. Попробуйте ещё раз.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -154,7 +173,7 @@ export default function Index() {
                 className="bg-white rounded-lg p-5 flex items-center gap-4 shadow-sm border border-gray-100 hover:shadow-md hover:border-[#e85d04]/20 transition-all duration-200"
               >
                 <div className="w-10 h-10 bg-[#0f1b3d]/5 rounded-lg flex items-center justify-center shrink-0">
-                  <Icon name={b.icon as any} size={20} className="text-[#e85d04]" />
+                  <Icon name={b.icon} fallback="Star" size={20} className="text-[#e85d04]" />
                 </div>
                 <span className="text-sm font-medium text-[#1a1a2e] leading-snug">{b.text}</span>
               </div>
@@ -282,34 +301,25 @@ export default function Index() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Интересующая вакансия</label>
-                <select
-                  value={form.vacancy}
-                  onChange={(e) => setForm({ ...form, vacancy: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0f1b3d] transition-colors text-gray-600"
-                >
-                  <option value="">Выберите вакансию</option>
-                  {vacancies.map((v) => (
-                    <option key={v.title} value={v.title}>{v.title}</option>
-                  ))}
-                  <option value="Любая">Любая подходящая</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">Комментарий (необязательно)</label>
-                <textarea
-                  rows={3}
-                  placeholder="Опыт работы, пожелания по графику..."
-                  value={form.comment}
-                  onChange={(e) => setForm({ ...form, comment: e.target.value })}
-                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0f1b3d] transition-colors resize-none"
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">Ваш город</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Москва"
+                  value={form.city}
+                  onChange={(e) => setForm({ ...form, city: e.target.value })}
+                  className="w-full border border-gray-200 rounded-lg px-4 py-3 text-sm focus:outline-none focus:border-[#0f1b3d] transition-colors"
                 />
               </div>
+              {error && (
+                <p className="text-red-500 text-sm text-center">{error}</p>
+              )}
               <button
                 type="submit"
-                className="w-full bg-[#e85d04] hover:bg-[#c94d03] text-white font-semibold py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-orange-900/30 hover:-translate-y-0.5 font-oswald text-lg tracking-wide"
+                disabled={loading}
+                className="w-full bg-[#e85d04] hover:bg-[#c94d03] disabled:opacity-60 disabled:cursor-not-allowed text-white font-semibold py-4 rounded-lg transition-all duration-200 hover:shadow-lg hover:shadow-orange-900/30 hover:-translate-y-0.5 font-oswald text-lg tracking-wide"
               >
-                Отправить заявку
+                {loading ? "Отправляем..." : "Отправить заявку"}
               </button>
               <p className="text-xs text-center text-gray-400">
                 Нажимая кнопку, вы соглашаетесь с обработкой персональных данных

@@ -1,0 +1,22 @@
+{
+  "tests": [
+    {
+      "name": "Submit valid application",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Иван Иванов", "phone": "+79991234567", "city": "Москва", "vacancy": "Разнорабочий"},
+      "expectedStatus": 200,
+      "expectedBody": {"success": true},
+      "bodyMatcher": "partial"
+    },
+    {
+      "name": "Missing required fields",
+      "method": "POST",
+      "path": "/",
+      "body": {"name": "Иван"},
+      "expectedStatus": 400,
+      "bodyMatcher": "partial",
+      "expectedBody": {"error": "Заполните все обязательные поля"}
+    }
+  ]
+}
